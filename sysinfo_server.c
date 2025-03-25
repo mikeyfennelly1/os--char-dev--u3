@@ -161,6 +161,10 @@ create_server_and_listen_on_port(void)
         return EXIT_FAILURE;
     }
 
+    socklen_t len = sizeof(server_addr);
+    getsockname(server_socket, (struct sockaddr*)&server_addr, &len);
+    printf("Server listening on port %d\n", ntohs(server_addr.sin_port));
+    
     // start listening on the port
     ret = listen(server_socket, SERVER_BACKLOG);
     if (ret < 0) 
