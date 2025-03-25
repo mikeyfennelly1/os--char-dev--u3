@@ -136,17 +136,3 @@ read_device(int fd)
 
     return sysinfo;
 }
-
-int main(void)
-{
-    char* cpu_contents = get_sysinfo(CPU);
-    free(cpu_contents);
-
-    char* mem_contents = get_sysinfo(MEMORY);    
-    free(mem_contents);
-
-    char* disk_contents = get_sysinfo(DISK);
-    free(disk_contents);
-
-    return EXIT_SUCCESS;
-}
