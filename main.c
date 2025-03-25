@@ -6,62 +6,46 @@
 #include <sys/socket.h>
 #include <pthread.h>
 
-#define PORT 8080
-#define BUFFER_SIZE 1024
-
-void* handle_client(void *client_sock_fd);
-
 int main(void)
 {
-    int server_sock_fd, client_sock_fd;
-    struct sockaddr_in server_addr, client_addr;
-    socklen_t addr_len = sizeof(client_addr);
+    // create array of thread references with size THREAD_NUM
+    pthread_t th[THREAD_NUM];
+    // init mutex for protecting queue operations
+    pthread_mutex_init(&mutex_queue, NULL);
+    // init cond_var for use when task is added to queue
+    pthread_cond_init(&cond_queue, NULL);
 
-    server_sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_sock_fd < 0)
+    pthread_mutex_init(&mutex_get_sysinfo, NULL);
+
+    // create thread pool
+    for (int i = 0; i < THREAD_NUM; i++)
     {
-        perror("Socket creation failed\n");
-        return EXIT_FAILURE;
-    }
-   
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(PORT);
-
-    int ret = bind(server_sock_fd, (struct sockaddr*)&server_addr, sizeof(server_addr));
-    if (ret < 0)
-    {
-        perror("bind failed\n");
-        close(server_sock_fd);
-        return EXIT_FAILURE;
-    }
-
-    ret = listen(server_sock_fd, 5);
-    if (ret < 0)
-    {
-        perror("listen fail\n");
-        close(server_sock_fd);
-        return EXIT_FAILURE;
-    }
-
-    printf("Server listening on port: %d\n", PORT);
-
-    while (1)
-    {
-        client_sock_fd = accept(server_sock_fd, (struct sockaddr*)&client_addr, &addr_len);
-        if (client_sock_fd < 0)
+        if (pthread_create(&th[i], NULL, &start_thread, NULL) != 0)
         {
-            perror("Accept failed\n");
-            continue;
+            perror("Failed to create thread\n");
         }
-
-        pthread_t handling_thread;
-
-        pthread_create(&handling_thread, NULL, handle_client, NULL);
     }
-}
 
-void* handle_client(void *client_sock_fd)
-{
-    
+    int server_sock = create_server_and_listen_on_port();
+    if (server_sock < 0)
+    {
+        perror("Failed to start server\n");
+        return EXIT_FAILURE;
+    }
+
+    // block main thread until all threads have joined.
+    for (int i = 0; i < THREAD_NUM; i++)
+    {
+        if (pthread_join(th[i], NULL) != 0)
+        {
+            perror("Failed to join the thread\n");
+        }
+    }
+
+    // destroy mutex_queue and cond_queue
+    pthread_mutex_destroy(&mutex_queue);
+    pthread_cond_destroy(&cond_queue);
+    pthread_mutex_destroy(&mutex_get_sysinfo);
+
+    return EXIT_SUCCESS;
 }

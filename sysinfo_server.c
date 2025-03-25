@@ -1,3 +1,12 @@
+/**
+ * sysinfo_server.c
+ * 
+ * A multithreaded server to expose a REST API to get sysinfo data.
+ * This server exhibits the thread pool pattern.
+ * 
+ * @author Mikey Fennelly
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
@@ -8,7 +17,6 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-#define THREAD_NUM 10
 #define SERVER_PORT 8080
 #define SERVER_BACKLOG 1
 
@@ -29,10 +37,20 @@ void submit_task(SysinfoTask task);
 void execute_task(SysinfoTask* task);
 int create_server_and_listen_on_port(void);
 
-int main(void)
+/**
+ * @brief - Create a thread pool of size 'num_workers'.
+ * 
+ * @param num_workers - the number of worker threads in the thread pool.
+ * @param cond_var - the condition variable to change when all threads have been created.
+ * 
+ * @return integer status code.
+ */
+int
+create_worker_pool(int num_workers,
+                   pthread_cond_t* cond_var)
 {
     // create array of thread references with size THREAD_NUM
-    pthread_t th[THREAD_NUM];
+    pthread_t th[num_workers];
     // init mutex for protecting queue operations
     pthread_mutex_init(&mutex_queue, NULL);
     // init cond_var for use when task is added to queue
@@ -41,7 +59,7 @@ int main(void)
     pthread_mutex_init(&mutex_get_sysinfo, NULL);
 
     // create thread pool
-    for (int i = 0; i < THREAD_NUM; i++)
+    for (int i = 0; i < num_workers; i++)
     {
         if (pthread_create(&th[i], NULL, &start_thread, NULL) != 0)
         {
@@ -49,15 +67,8 @@ int main(void)
         }
     }
 
-    int server_sock = create_server_and_listen_on_port();
-    if (server_sock < 0)
-    {
-        perror("Failed to start server\n");
-        return EXIT_FAILURE;
-    }
-
     // block main thread until all threads have joined.
-    for (int i = 0; i < THREAD_NUM; i++)
+    for (int i = 0; i < num_workers; i++)
     {
         if (pthread_join(th[i], NULL) != 0)
         {
@@ -74,6 +85,40 @@ int main(void)
 }
 
 /**
+ * @brief Start a new worker thread.
+ * 
+ * This thread will wait for a signal to execute a task from the
+ * task_queue.
+ */
+void*
+start_thread(void* args)
+{
+    while (1)
+    {
+        SysinfoTask task;
+        task = task_queue[0];
+        bool found = false;
+
+        // Lock the critical section where task is being taken from queue.
+        pthread_mutex_lock(&mutex_queue);
+        while (task_count == 0)
+        {
+            pthread_cond_wait(&cond_queue, &mutex_queue);
+        }
+
+        found = true;
+        for (int i = 0; i < task_count - 1; i++)
+        {
+            task_queue[i] = task_queue[i + 1];
+        }
+        task_count--;
+
+        pthread_mutex_unlock(&mutex_queue);
+        execute_task(&task);
+    }
+}
+
+/**
  * @brief Create a stream server that listens on a TCP socket.
  * 
  * 
@@ -81,7 +126,8 @@ int main(void)
  *           the server is successful.
  *              else returns -1.
  */
-int create_server_and_listen_on_port(void)
+int
+create_server_and_listen_on_port(void)
 {
     int server_socket;
     struct sockaddr_in server_addr;
@@ -118,7 +164,8 @@ int create_server_and_listen_on_port(void)
     return server_socket;
 }
 
-void execute_task(SysinfoTask* task)
+void
+execute_task(SysinfoTask* task)
 {
 }
 
@@ -129,44 +176,12 @@ void execute_task(SysinfoTask* task)
  * 
  * @param task - the SysinfoTask to add to the queue
  */
-void submit_task(SysinfoTask task)
+void
+submit_task(SysinfoTask task)
 {
     pthread_mutex_lock(&mutex_queue);
     task_queue[task_count] = task;
     task_count++;
     pthread_mutex_unlock(&mutex_queue);
     pthread_cond_signal(&cond_queue);
-}
-
-/**
- * @brief Start a new worker thread.
- * 
- * This thread will wait for a signal to execute a task from the
- * task_queue.
- */
-void* start_thread(void* args)
-{
-    while (1)
-    {
-        SysinfoTask task;
-        task = task_queue[0];
-        bool found = false;
-
-        // Lock the critical section where task is being taken from queue.
-        pthread_mutex_lock(&mutex_queue);
-        while (task_count == 0)
-        {
-            pthread_cond_wait(&cond_queue, &mutex_queue);
-        }
-
-        found = true;
-        for (int i = 0; i < task_count - 1; i++)
-        {
-            task_queue[i] = task_queue[i + 1];
-        }
-        task_count--;
-
-        pthread_mutex_unlock(&mutex_queue);
-        execute_task(&task);
-    }
 }

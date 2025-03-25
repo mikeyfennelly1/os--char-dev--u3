@@ -1,12 +1,12 @@
 /**
- * sysinfo.c
+ * sysinfo_device.c
  * 
- * Read from the /dev/sysinfo file for a specified info type
+ * An API to interact with the sysinfo device /dev node.
  * 
  * @author Mikey Fennelly
  */
 
-#include "./sysinfo.h"
+#include "./sysinfo_device.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -34,7 +34,8 @@ char* read_device(int fd);
  * @return - if sucessful, returns pointer to string on heap.
  *              else returns NULL.
  */
-char* get_sysinfo(int info_type)
+char*
+get_sysinfo(int info_type)
 {
     // if an invalid info_type is passed return NULL.
     if (!(info_type >= 1 && info_type <= 3))
@@ -75,7 +76,9 @@ char* get_sysinfo(int info_type)
  * 
  * @return status code, indicating success of ioctl operation.
  */
-int change_current_info_type(int dev_fd, int mode)
+int
+change_current_info_type(int dev_fd,
+                         int mode)
 {
     if (!(mode >= 1 && mode <=3))
     {
@@ -111,7 +114,8 @@ int change_current_info_type(int dev_fd, int mode)
  * @return - the contents of the read if successful
  *              else NULL.
  */
-char* read_device(int fd)
+char*
+read_device(int fd)
 {
     char* sysinfo = malloc(READ_BUF_SIZE);
 
