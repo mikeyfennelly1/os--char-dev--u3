@@ -21,7 +21,7 @@
 #define SERVER_BACKLOG 1
 
 typedef struct SysinfoTask {
-    int info_type;
+    char* client_msg;
     int client_fd;
 } SysinfoTask;
 
@@ -179,13 +179,11 @@ start_server(void)
 void
 execute_task(SysinfoTask* task)
 {
-    printf("executing task: %d\n", task->info_type);
+    printf("executing task: %d\n");
 }
 
 /**
  * @brief Add a task to the task queue
- * 
- * @param task - the SysinfoTask to be added to the task queue
  * 
  * @param task - the SysinfoTask to add to the queue
  */

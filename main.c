@@ -1,3 +1,11 @@
+/**
+ * main.c
+ * 
+ * Entrypoint to sysinfo server
+ * 
+ * @author Mikey Fennelly
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
