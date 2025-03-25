@@ -3,10 +3,10 @@
 
 #include <pthread.h>
 
-typedef struct ThreadPool {
+typedef struct WorkerPool {
     pthread_t* workers;
     int num_workers;
-} ThreadPool;
+} WorkerPool;
 
 /**
  * @brief - Create a thread pool of size 'num_workers'.
@@ -15,10 +15,10 @@ typedef struct ThreadPool {
  * 
  * @return integer status code.
  */
-ThreadPool* create_worker_pool(int num_workers);
+WorkerPool* create_worker_pool(int num_workers);
 
-void wait_on_thread_pool(ThreadPool* pool);
+void wait_on_worker_pool(WorkerPool* pool);
 
-int create_server_and_listen_on_port(void);
+int start_server(void);
 
 #endif

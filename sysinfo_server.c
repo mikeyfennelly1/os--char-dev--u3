@@ -25,10 +25,10 @@ typedef struct SysinfoTask {
     int client_fd;
 } SysinfoTask;
 
-typedef struct ThreadPool {
+typedef struct WorkerPool {
     pthread_t* workers;
     int num_workers;
-} ThreadPool;
+} WorkerPool;
 
 SysinfoTask task_queue[256];
 int task_count = 0;
@@ -41,7 +41,7 @@ bool worker_pool_exists = false;
 void* start_thread(void* args);
 void submit_task(SysinfoTask task);
 void execute_task(SysinfoTask* task);
-int create_server_and_listen_on_port(void);
+int start_server(void);
 
 /**
  * @brief - Create a thread pool of size 'num_workers'.
@@ -50,10 +50,10 @@ int create_server_and_listen_on_port(void);
  * 
  * @return integer status code.
  */
-ThreadPool*
+WorkerPool*
 create_worker_pool(int num_workers)
 {
-    ThreadPool* pool = (ThreadPool*) malloc(sizeof(ThreadPool));
+    WorkerPool* pool = (WorkerPool*) malloc(sizeof(WorkerPool));
     pool->workers = (pthread_t*) malloc(sizeof(pthread_t) * num_workers);
     pool->num_workers = num_workers;
 
@@ -75,12 +75,12 @@ create_worker_pool(int num_workers)
     return pool;
 }
 
-void close_thread_pool(ThreadPool* pool)
+void close_thread_pool(WorkerPool* pool)
 {
     free(pool);
 }
 
-void wait_on_thread_pool(ThreadPool* pool)
+void wait_on_worker_pool(WorkerPool* pool)
 {
     for (int i = 0; i < pool->num_workers; i++)
     {
@@ -135,7 +135,7 @@ start_thread(void* args)
  *              else returns -1.
  */
 int
-create_server_and_listen_on_port(void)
+start_server(void)
 {
     int server_socket;
     struct sockaddr_in server_addr;
