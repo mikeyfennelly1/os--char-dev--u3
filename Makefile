@@ -1,8 +1,18 @@
-all:
-	@gcc thread_pooling.c -o thread_pooling
+BUILD_DIR:=./build
+OBJECT_DIR:=$(BUILD_DIR)/objects
 
-sysinfo:
-	@gcc sysinfo.c -o sysinfo
+all: objects
+
+%.o: %.c
+	gcc -c $< -o $(OBJECT_DIR)/$@
+
+objects: $(OBJECT_DIR) sysinfo_device.o sysinfo_server.o main.o
+
+$(BUILD_DIR):
+	@mkdir -p $(BUILD_DIR)
+
+$(OBJECT_DIR): $(BUILD_DIR)
+	@mkdir -p $(OBJECT_DIR) 
 
 clean:
-	@rm thread_pooling sysinfo
+	@rm -rf $(BUILD_DIR)

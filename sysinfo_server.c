@@ -25,12 +25,18 @@ typedef struct SysinfoTask {
     int client_fd;
 } SysinfoTask;
 
+typedef struct ThreadPool {
+    pthread_t* workers;
+    int num_workers;
+} ThreadPool;
+
 SysinfoTask task_queue[256];
 int task_count = 0;
 
 pthread_mutex_t mutex_queue;
 pthread_mutex_t mutex_get_sysinfo;
 pthread_cond_t cond_queue;
+bool worker_pool_exists = false;
 
 void* start_thread(void* args);
 void submit_task(SysinfoTask task);
@@ -41,47 +47,49 @@ int create_server_and_listen_on_port(void);
  * @brief - Create a thread pool of size 'num_workers'.
  * 
  * @param num_workers - the number of worker threads in the thread pool.
- * @param cond_var - the condition variable to change when all threads have been created.
  * 
  * @return integer status code.
  */
-int
-create_worker_pool(int num_workers,
-                   pthread_cond_t* cond_var)
+ThreadPool*
+create_worker_pool(int num_workers)
 {
-    // create array of thread references with size THREAD_NUM
-    pthread_t th[num_workers];
-    // init mutex for protecting queue operations
-    pthread_mutex_init(&mutex_queue, NULL);
-    // init cond_var for use when task is added to queue
-    pthread_cond_init(&cond_queue, NULL);
+    ThreadPool* pool = (ThreadPool*) malloc(sizeof(ThreadPool));
+    pool->workers = (pthread_t*) malloc(sizeof(pthread_t) * num_workers);
+    pool->num_workers = num_workers;
 
+    pthread_mutex_init(&mutex_queue, NULL);
+    pthread_cond_init(&cond_queue, NULL);
     pthread_mutex_init(&mutex_get_sysinfo, NULL);
 
-    // create thread pool
+    // create worker threads for pool of size num_workers
     for (int i = 0; i < num_workers; i++)
     {
-        if (pthread_create(&th[i], NULL, &start_thread, NULL) != 0)
+        if (pthread_create(&pool->workers[i], NULL, &start_thread, NULL) != 0)
         {
             perror("Failed to create thread\n");
         }
     }
 
-    // block main thread until all threads have joined.
-    for (int i = 0; i < num_workers; i++)
+    worker_pool_exists = true;
+
+    return pool;
+}
+
+void close_thread_pool(ThreadPool* pool)
+{
+    free(pool);
+}
+
+void wait_on_thread_pool(ThreadPool* pool)
+{
+    for (int i = 0; i < pool->num_workers; i++)
     {
-        if (pthread_join(th[i], NULL) != 0)
+        if (pthread_join(pool->workers[i], NULL) != 0)
         {
-            perror("Failed to join the thread\n");
-        }
+            perror("Failed to join thread\n");
+        };
     }
-
-    // destroy mutex_queue and cond_queue
-    pthread_mutex_destroy(&mutex_queue);
-    pthread_cond_destroy(&cond_queue);
-    pthread_mutex_destroy(&mutex_get_sysinfo);
-
-    return EXIT_SUCCESS;
+    free(pool);
 }
 
 /**
@@ -167,6 +175,7 @@ create_server_and_listen_on_port(void)
 void
 execute_task(SysinfoTask* task)
 {
+    printf("executing task: %d\n", task->info_type);
 }
 
 /**
