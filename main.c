@@ -87,13 +87,27 @@ void handle_request(int client_socket, const char *method, const char *path)
 {
     char response[BUFFER_SIZE];
 
-    if (strcmp(method, "GET") == 0 && strcmp(path, "/hello") == 0) {
+    if (strcmp(method, "GET") == 0 && strcmp(path, "/cpu") == 0) {
         sprintf(response, 
             "HTTP/1.1 200 OK\r\n"
             "Content-Type: application/json\r\n"
             "Content-Length: 20\r\n"
             "\r\n"
-            "{\"message\": \"Hello\"}");
+            "{\"data\": \"cpu\"}");
+    } else if (strcmp(method, "GET") == 0 && strcmp(path, "/memory") == 0) {
+        sprintf(response, 
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Type: application/json\r\n"
+            "Content-Length: 20\r\n"
+            "\r\n"
+            "{\"data\": \"memory\"}");
+    } else if (strcmp(method, "GET") == 0 && strcmp(path, "/disk") == 0) {
+        sprintf(response, 
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Type: application/json\r\n"
+            "Content-Length: 20\r\n"
+            "\r\n"
+            "{\"data\": \"disk\"}");
     } else {
         sprintf(response, 
             "HTTP/1.1 404 Not Found\r\n"
