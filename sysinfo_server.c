@@ -179,7 +179,7 @@ start_server(void)
 void
 execute_task(SysinfoTask* task)
 {
-    printf("executing task: %d\n");
+    printf("executing task:\n");
 }
 
 /**
