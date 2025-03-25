@@ -1,2 +1,5 @@
 all:
-	g++ main.cpp -o main
+	@gcc thread_pooling.c -o thread_pooling
+
+clean:
+	@rm thread_pooling
