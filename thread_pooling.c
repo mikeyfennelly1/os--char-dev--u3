@@ -8,22 +8,27 @@
 
 #define THREAD_NUM 10
 
-typedef struct Task {
+typedef struct SysinfoTask {
     int a, b;
-} Task;
+} SysinfoTask;
 
-Task task_queue[256];
+SysinfoTask task_queue[256];
 int task_count = 0;
 
 pthread_mutex_t mutex_queue;
 pthread_cond_t cond_queue;
 
-void execute_task(Task* task) {
+void* start_thread(void* args);
+void submit_task(SysinfoTask task);
+void execute_task(SysinfoTask* task);
+
+void execute_task(SysinfoTask* task)
+{
     int result = task->a + task->b;
     printf("The sum of %d and %d is %d\n", task->a, task->b, result);
 }
 
-void submit_task(Task task)
+void submit_task(SysinfoTask task)
 {
     pthread_mutex_lock(&mutex_queue);
     task_queue[task_count] = task;
@@ -36,7 +41,7 @@ void* start_thread(void* args)
 {
     while (1)
     {
-        Task task;
+        SysinfoTask task;
         task = task_queue[0];
         bool found = false;
 
@@ -75,7 +80,7 @@ int main(void)
     srand(time(NULL));
     for (int i = 0; i < 100; i++)
     {
-        Task task = {
+        SysinfoTask task = {
             .a = rand() % 100,
             .b = rand() % 100,
         };
