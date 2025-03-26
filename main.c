@@ -40,6 +40,7 @@ int main(void)
             printf("Accept failure");
             continue;
         }
+        printf("Accepted client_fd: %d\n", client_fd); // Debugging print
         SysinfoTask this_task = {client_fd};
         submit_task(this_task);
         printf("Task submitted\n");

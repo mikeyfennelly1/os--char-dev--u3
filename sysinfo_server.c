@@ -42,7 +42,7 @@ bool worker_pool_exists = false;
 
 void* start_thread(void* args);
 void submit_task(SysinfoTask task);
-void execute_task(SysinfoTask* task);
+void execute_task(SysinfoTask task);
 int start_server(void);
 
 /**
@@ -105,18 +105,21 @@ start_thread(void* args)
 {
     while (1)
     {
-        SysinfoTask task;
-        task = task_queue[0];
         bool found = false;
-
+        
         // Lock the critical section where task is being taken from queue.
         pthread_mutex_lock(&mutex_queue);
         while (task_count == 0)
         {
             pthread_cond_wait(&cond_queue, &mutex_queue);
         }
-
+        
         found = true;
+        printf("start_thread: task_count: %d\n", task_count);
+        printf("start_thread: task_queue[0]: %d\n", task_queue[0].client_fd);    
+        SysinfoTask task;
+        task = task_queue[0];
+
         for (int i = 0; i < task_count - 1; i++)
         {
             task_queue[i] = task_queue[i + 1];
@@ -124,7 +127,7 @@ start_thread(void* args)
         task_count--;
 
         pthread_mutex_unlock(&mutex_queue);
-        execute_task(&task);
+        execute_task(task);
     }
 }
 
@@ -184,21 +187,20 @@ start_server(void)
  * @param task - struct with information about the task.
  */
 void
-execute_task(SysinfoTask* task)
+execute_task(SysinfoTask task)
 {
     char method[64], path[256];
     char* request_buf = (char*)malloc(BUFSIZE);
-    
-    int ret = read_request(task->client_fd, request_buf);
+
+    int ret = read_request(task.client_fd, request_buf);
     if (ret < 0)
     {
-        perror("Could not read request");
-        return;
+        perror("Could not read request\n");
     }
 
     parse_request(request_buf, method, path);
-    handle_request(task->client_fd, method, path);
-    close(task->client_fd);
+    handle_request(task.client_fd, method, path);
+    printf("executing task:\n");
 }
 
 /**
@@ -212,6 +214,8 @@ submit_task(SysinfoTask task)
     pthread_mutex_lock(&mutex_queue);
     task_queue[task_count] = task;
     task_count++;
+    printf("submit_task: task_count: %d\n", task_count);
+    printf("submit_task: task_queue[0]: %d\n", task_queue[0].client_fd);
     pthread_mutex_unlock(&mutex_queue);
     pthread_cond_signal(&cond_queue);
 }

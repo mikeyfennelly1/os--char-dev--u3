@@ -29,7 +29,7 @@ read_request(int client_socket,
 {
     int bytes_received = recv(client_socket, request_buffer, BUFFER_SIZE - 1, 0);
     if (bytes_received < 0) {
-        printf("recv failed");
+        perror("recv failed");
         return -1;
     }
     request_buffer[bytes_received] = '\0'; // Null-terminate the string
