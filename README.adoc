@@ -41,5 +41,5 @@ make
 
 [source, bash]
 ----
-./build/sysinfo_server
+./run.sh
 ----
