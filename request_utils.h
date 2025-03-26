@@ -30,6 +30,6 @@ void parse_request(char *request_buffer, char *method, char *path);
  * @param path - the client's requested route.
  * 
  */
-void handle_client(int client_socket, const char *method, const char *path);
+void handle_request(int client_socket, const char *method, const char *path);
 
 #endif

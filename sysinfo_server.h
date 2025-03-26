@@ -8,6 +8,10 @@ typedef struct WorkerPool {
     int num_workers;
 } WorkerPool;
 
+typedef struct SysinfoTask {
+    int client_fd;
+} SysinfoTask;
+
 /**
  * @brief - Create a thread pool of size 'num_workers'.
  * 
@@ -20,5 +24,7 @@ WorkerPool* create_worker_pool(int num_workers);
 void wait_on_worker_pool(WorkerPool* pool);
 
 int start_server(void);
+
+void submit_task(SysinfoTask task);
 
 #endif

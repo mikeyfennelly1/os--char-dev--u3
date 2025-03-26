@@ -24,7 +24,6 @@
 #define BUFSIZE 4096
 
 typedef struct SysinfoTask {
-    char* client_msg;
     int client_fd;
 } SysinfoTask;
 
@@ -179,6 +178,11 @@ start_server(void)
     return server_socket;
 }
 
+/**
+ * @brief Execute a task on the task queue.
+ * 
+ * @param task - struct with information about the task.
+ */
 void
 execute_task(SysinfoTask* task)
 {
@@ -187,10 +191,14 @@ execute_task(SysinfoTask* task)
     
     int ret = read_request(task->client_fd, request_buf);
     if (ret < 0)
+    {
+        perror("Could not read request");
+        return;
+    }
 
     parse_request(request_buf, method, path);
     handle_request(task->client_fd, method, path);
-    printf("executing task:\n");
+    close(task->client_fd);
 }
 
 /**

@@ -1,6 +1,6 @@
 BUILD_DIR:=./build
 OBJECT_DIR:=$(BUILD_DIR)/objects
-SRCS:=sysinfo_device.c sysinfo_server.c main.c 
+SRCS:=sysinfo_device.c sysinfo_server.c main.c request_utils.c
 OBJS:=$(SRCS:%.c=%.o)
 OUTPUTTED_OBJS:=$(OBJS:%.o=$(OBJECT_DIR)/%.o)
 

@@ -8,6 +8,10 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 #define BUFFER_SIZE 4096
 
@@ -25,7 +29,7 @@ read_request(int client_socket,
 {
     int bytes_received = recv(client_socket, request_buffer, BUFFER_SIZE - 1, 0);
     if (bytes_received < 0) {
-        perror("recv failed");
+        printf("recv failed");
         return -1;
     }
     request_buffer[bytes_received] = '\0'; // Null-terminate the string
@@ -58,7 +62,7 @@ parse_request(char *request_buffer,
  * 
  */
 void
-handle_client(int client_socket,
+handle_request(int client_socket,
               const char *method,
               const char *path)
 {

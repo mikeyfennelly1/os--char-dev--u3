@@ -37,10 +37,12 @@ int main(void)
         int client_fd = accept(server_sock, (struct sockaddr*)&client_addr, &client_len);
         if (client_fd < 0)
         {
-            printf("accept failed\n");
+            printf("Accept failure");
+            continue;
         }
-
-        close(client_fd);
+        SysinfoTask this_task = {client_fd};
+        submit_task(this_task);
+        printf("Task submitted\n");
     }
 
     wait_on_worker_pool(worker_pool);
