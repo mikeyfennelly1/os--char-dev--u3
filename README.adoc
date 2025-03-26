@@ -1,3 +1,45 @@
 = os--char-dev-2--u3
+:toc:
 
-**O**perating **s**ystems, **char**acter **dev**ice 2, **u**ser space app **3**.
+**O**perating **S**ystems, **Char**acter **Dev**ice 2, **U**ser space App **3**.
+
+== What is this application?
+
+This is a multithreaded server, written in C. It implements a thread pool and exposes 3 REST endpoints over HTTP. It listens on a stream socket, binded a TCP port.
+
+This app was created to be multithreaded and demonstrate a character device LKM.
+
+=== endpoints
+
+When an endpoint is hit, the server changes the current_info_type of the device, and reads from the device. It then returns the data to the client.
+
+1. https://localhost:<port>/cpu
+
+2. https://localhost:<port>/memory
+
+3. https://localhost:<port>/disk
+
+== Install
+
+[source, bash]
+----
+# Clone this repo.
+git clone git@github.com:mikeyfennelly1/os--char-dev--u3.git
+
+# Change directory into project directory just cloned.
+cd os--char-dev--u3
+----
+
+== Build
+
+[source, bash]
+----
+make
+----
+
+== Run
+
+[source, bash]
+----
+./build/sysinfo_server
+----
