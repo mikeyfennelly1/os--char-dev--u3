@@ -27,4 +27,6 @@ int start_server(void);
 
 void submit_task(SysinfoTask task);
 
+extern pthread_mutex_t mutex_get_sysinfo;
+
 #endif

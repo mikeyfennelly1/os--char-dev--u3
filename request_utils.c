@@ -14,6 +14,7 @@
 #include <unistd.h>
 
 #include "sysinfo_device.h"
+#include "sysinfo_server.h"
 
 #define BUFFER_SIZE 4096
 
@@ -73,6 +74,7 @@ handle_request(int client_socket,
     printf("path: %s\n", path);
     printf("method: %s\n", method);
 
+    pthread_mutex_lock(&mutex_get_sysinfo);
     if (strcmp(method, "GET") == 0 && strcmp(path, "/cpu") == 0) {
         sprintf(response, 
             "HTTP/1.1 200 OK\r\n"
@@ -105,6 +107,7 @@ handle_request(int client_socket,
 
             char* sysinfo = get_sysinfo(DISK);
             printf("%s\n", sysinfo);
+
     } else {
         sprintf(response, 
             "HTTP/1.1 404 Not Found\r\n"
@@ -113,6 +116,7 @@ handle_request(int client_socket,
             "\r\n"
             "404 Not Found");
     }
+    pthread_mutex_unlock(&mutex_get_sysinfo);
     printf("Response:\n\n %s\n", response);
 
     send(client_socket, response, strlen(response), 0);
