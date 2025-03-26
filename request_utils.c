@@ -13,6 +13,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include "sysinfo_device.h"
+
 #define BUFFER_SIZE 4096
 
 /**
@@ -78,6 +80,10 @@ handle_request(int client_socket,
             "Content-Length: 20\r\n"
             "\r\n"
             "{\"data\": \"cpu\"}");
+
+            char* sysinfo = get_sysinfo(CPU);
+            printf("%s\n", sysinfo);
+
     } else if (strcmp(method, "GET") == 0 && strcmp(path, "/memory") == 0) {
         sprintf(response, 
             "HTTP/1.1 200 OK\r\n"
@@ -85,6 +91,10 @@ handle_request(int client_socket,
             "Content-Length: 20\r\n"
             "\r\n"
             "{\"data\": \"memory\"}");
+
+            char* sysinfo = get_sysinfo(MEMORY);
+            printf("%s\n", sysinfo);
+
     } else if (strcmp(method, "GET") == 0 && strcmp(path, "/disk") == 0) {
         sprintf(response, 
             "HTTP/1.1 200 OK\r\n"
@@ -92,6 +102,9 @@ handle_request(int client_socket,
             "Content-Length: 20\r\n"
             "\r\n"
             "{\"data\": \"disk\"}");
+
+            char* sysinfo = get_sysinfo(DISK);
+            printf("%s\n", sysinfo);
     } else {
         sprintf(response, 
             "HTTP/1.1 404 Not Found\r\n"
