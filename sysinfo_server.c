@@ -18,26 +18,19 @@
 #include <sys/socket.h>
 
 #include "request_utils.h"
+#include "sysinfo_server.h"
 
 #define SERVER_PORT 8080
 #define SERVER_BACKLOG 1
 #define BUFSIZE 4096
 
-typedef struct SysinfoTask {
-    int client_fd;
-} SysinfoTask;
-
-typedef struct WorkerPool {
-    pthread_t* workers;
-    int num_workers;
-} WorkerPool;
-
 SysinfoTask task_queue[256];
 int task_count = 0;
 
 pthread_mutex_t mutex_queue;
-pthread_mutex_t mutex_get_sysinfo;
 pthread_cond_t cond_queue;
+pthread_mutex_t mutex_get_sysinfo;
+
 bool worker_pool_exists = false;
 
 void* start_thread(void* args);
