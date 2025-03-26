@@ -115,8 +115,6 @@ start_thread(void* args)
         }
         
         found = true;
-        printf("start_thread: task_count: %d\n", task_count);
-        printf("start_thread: task_queue[0]: %d\n", task_queue[0].client_fd);    
         SysinfoTask task;
         task = task_queue[0];
 
@@ -214,8 +212,6 @@ submit_task(SysinfoTask task)
     pthread_mutex_lock(&mutex_queue);
     task_queue[task_count] = task;
     task_count++;
-    printf("submit_task: task_count: %d\n", task_count);
-    printf("submit_task: task_queue[0]: %d\n", task_queue[0].client_fd);
     pthread_mutex_unlock(&mutex_queue);
     pthread_cond_signal(&cond_queue);
 }
