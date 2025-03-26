@@ -17,8 +17,11 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
+#include "request_utils.h"
+
 #define SERVER_PORT 8080
 #define SERVER_BACKLOG 1
+#define BUFSIZE 4096
 
 typedef struct SysinfoTask {
     char* client_msg;
@@ -179,6 +182,14 @@ start_server(void)
 void
 execute_task(SysinfoTask* task)
 {
+    char method[64], path[256];
+    char* request_buf = (char*)malloc(BUFSIZE);
+    
+    int ret = read_request(task->client_fd, request_buf);
+    if (ret < 0)
+
+    parse_request(request_buf, method, path);
+    handle_request(task->client_fd, method, path);
     printf("executing task:\n");
 }
 
