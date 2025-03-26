@@ -198,7 +198,6 @@ execute_task(SysinfoTask task)
 
     parse_request(request_buf, method, path);
     handle_request(task.client_fd, method, path);
-    printf("executing task:\n");
 }
 
 /**

@@ -63,10 +63,13 @@ parse_request(char *request_buffer,
  */
 void
 handle_request(int client_socket,
-              const char *method,
-              const char *path)
+               const char *method,
+               const char *path)
 {
     char response[BUFFER_SIZE];
+
+    printf("path: %s\n", path);
+    printf("method: %s\n", method);
 
     if (strcmp(method, "GET") == 0 && strcmp(path, "/cpu") == 0) {
         sprintf(response, 
@@ -97,6 +100,8 @@ handle_request(int client_socket,
             "\r\n"
             "404 Not Found");
     }
+    printf("Response:\n\n %s\n", response);
 
     send(client_socket, response, strlen(response), 0);
+    close(client_socket);
 }
