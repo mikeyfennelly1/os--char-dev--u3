@@ -20,19 +20,21 @@
 #include "request_utils.h"
 #include "sysinfo_server.h"
 
-#define SERVER_PORT 8080
-#define SERVER_BACKLOG 1
+#define SERVER_PORT 8080        // TCP port to start server on
+#define SERVER_BACKLOG 10       // number  of clients to queue before refusing connection requests
 #define BUFSIZE 4096
 
-SysinfoTask task_queue[256];
-int task_count = 0;
+SysinfoTask task_queue[256];    // task_queue to for thread pool
+int task_count = 0;             // initial number of tasks on the queue set to 0
 
+// sync variables
 pthread_mutex_t mutex_queue;
 pthread_cond_t cond_queue;
 pthread_mutex_t mutex_get_sysinfo;
 
 bool worker_pool_exists = false;
 
+// function prototypes
 void* start_thread(void* args);
 void submit_task(SysinfoTask task);
 void execute_task(SysinfoTask task);
@@ -41,6 +43,9 @@ int start_server(void);
 /**
  * @brief - Create a thread pool of size 'num_workers'.
  * 
+ * This function starts worker threads for worker pool of size num_workers.
+ * It also initializes sync variables for internal use within the thread pool.
+ * 
  * @param num_workers - the number of worker threads in the thread pool.
  * 
  * @return integer status code.
@@ -48,10 +53,15 @@ int start_server(void);
 WorkerPool*
 create_worker_pool(int num_workers)
 {
+    // malloc a WorkerPool object
     WorkerPool* pool = (WorkerPool*) malloc(sizeof(WorkerPool));
+    // malloc worker thread references and add them to WorkerPool as
+    // the workers for this pool. 
     pool->workers = (pthread_t*) malloc(sizeof(pthread_t) * num_workers);
+    // set num_workers in thread pool to equal num_workers
     pool->num_workers = num_workers;
 
+    // initialize sync vars
     pthread_mutex_init(&mutex_queue, NULL);
     pthread_cond_init(&cond_queue, NULL);
     pthread_mutex_init(&mutex_get_sysinfo, NULL);
@@ -70,11 +80,19 @@ create_worker_pool(int num_workers)
     return pool;
 }
 
+/**
+ * Gracefully shut down a thread pool, given a WorkerPool object
+ * 
+ * @param pool - the thread pool to shut down
+ */
 void close_thread_pool(WorkerPool* pool)
 {
     free(pool);
 }
 
+/**
+ * @brief Block thread until all workers in WorkerPool have completed.
+ */
 void wait_on_worker_pool(WorkerPool* pool)
 {
     for (int i = 0; i < pool->num_workers; i++)
@@ -84,6 +102,8 @@ void wait_on_worker_pool(WorkerPool* pool)
             perror("Failed to join thread\n");
         };
     }
+
+    // free memory occupied by pool
     free(pool);
 }
 
@@ -104,27 +124,33 @@ start_thread(void* args)
         pthread_mutex_lock(&mutex_queue);
         while (task_count == 0)
         {
+            // wait for a signal to attempt to get an item from the queue
             pthread_cond_wait(&cond_queue, &mutex_queue);
         }
-        
+    
         found = true;
         SysinfoTask task;
+        // pull first item from the queue
         task = task_queue[0];
 
+        // shift all tasks in task_queue closer to the front of
+        // queue by 1
         for (int i = 0; i < task_count - 1; i++)
         {
             task_queue[i] = task_queue[i + 1];
         }
+        // decrement task_count
         task_count--;
 
         pthread_mutex_unlock(&mutex_queue);
+
+        // execute the task
         execute_task(task);
     }
 }
 
 /**
  * @brief Create a stream server that listens on a TCP socket.
- * 
  * 
  * @return - file descriptor for socket of the server starting
  *           the server is successful.

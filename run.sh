@@ -1,5 +1,5 @@
 #!/bin/bash
 
-make clean
-make
+make clean > /dev/null
+make > /dev/null
 ./build/sysinfo_server
