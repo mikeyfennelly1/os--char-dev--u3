@@ -6,7 +6,6 @@
  * @author Mikey Fennelly
  */
 
-#include "./sysinfo_device.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -14,12 +13,15 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
+#include "./sysinfo_device.h"
+
 #define SYSINFO_DEVICE "/dev/sysinfo"
 #define READ_BUF_SIZE 256
 #define SET_CIT_CPU _IOW('C',CPU, int)          // set the current_info_type to cpu
 #define SET_CIT_MEM _IOW('M', MEMORY, int)      // set the current_info_type to memory
 #define SET_CIT_DISK _IOW('D', DISK, int)       // // set the current_info_type to disk
 
+// prototypes
 int change_current_info_type(int dev_fd, int mode);
 char* get_sysinfo(int info_type);
 char* read_device(int fd);
@@ -90,18 +92,21 @@ change_current_info_type(int dev_fd,
     {
         if (ioctl(dev_fd, SET_CIT_CPU, CPU) == -1) {
             perror("ioctl SET_CIT_CPU failed");
+            return EXIT_FAILURE;
         }
     }
     if (mode == MEMORY)
     {
         if (ioctl(dev_fd, SET_CIT_MEM, MEMORY) == -1) {
             perror("ioctl SET_CIT_MEM failed");
+            return EXIT_FAILURE;
         }
     }
     if (mode == DISK)
     {
         if (ioctl(dev_fd, SET_CIT_DISK, DISK) == -1) {
             perror("ioctl SET_CIT_DISK failed");
+            return EXIT_FAILURE;
         }
     }
 
