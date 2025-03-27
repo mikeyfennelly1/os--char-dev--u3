@@ -122,6 +122,7 @@ change_current_info_type(int dev_fd,
 char*
 read_device(int fd)
 {
+    // allocate buffer for sysinfo data string
     char* sysinfo = malloc(READ_BUF_SIZE);
 
     // read the file until EOF
@@ -129,8 +130,8 @@ read_device(int fd)
     ssize_t bytes_read;
     while((bytes_read = read(fd, sysinfo, READ_BUF_SIZE - 1)) > 0)
     {
+        // add null character to end of string
         sysinfo[bytes_read] = '\0';
-        printf("%s", sysinfo);
     }
 
     if (bytes_read == -1)
